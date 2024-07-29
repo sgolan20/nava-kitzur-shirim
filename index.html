@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>נאוה קיצור שירים</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.6.3/wavesurfer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.6.3/plugin/wavesurfer.regions.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --background-color: #f0f4f8;
+            --text-color: #333;
+            --white: #ffffff;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            height: 100%;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 10px;
+            box-sizing: border-box;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .upload-section {
+            background-color: var(--white);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        #fileInputLabel {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 14px;
+        }
+        
+        #fileInputLabel:hover {
+            background-color: #3a7bd5;
+            transform: scale(1.05);
+        }
+        
+        #audioFile {
+            display: none;
+        }
+        
+        .waveform-container {
+            background-color: var(--white);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        #waveform {
+            flex-grow: 1;
+            min-height: 100px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 14px;
+            margin: 5px 0;
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .btn:hover {
+            background-color: #3a7bd5;
+            transform: scale(1.05);
+        }
+        
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn i {
+            margin-right: 5px;
+        }
+        
+        .time-inputs {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .time-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 5px;
+        }
+        
+        input[type="number"] {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        #trimButton {
+            background-color: var(--secondary-color);
+        }
+        
+        #trimButton:hover {
+            background-color: #e67e22;
+        }
+        
+        #status {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            color: var(--primary-color);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .loading i {
+            font-size: 24px;
+            color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        #previewButton {
+            background-color: #27ae60;
+        }
+        
+        #previewButton:hover {
+            background-color: #2ecc71;
+        }
+        
+        #volumeControl {
+            width: 100%;
+            max-width: 200px;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 20px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            input[type="number"] {
+                width: 60px;
+                font-size: 13px;
+            }
+        }
+        .youtube-promo {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .youtube-promo a {
+            color: #FF0000;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .youtube-promo a:hover {
+            color: #CC0000;
+        }
+
+        .youtube-promo i {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo"><i class="fas fa-music"></i> נאוה קיצור שירים</div>
+        </div>
+        
+        <div class="upload-section slide-in">
+            <label id="fileInputLabel" for="audioFile">
+                <i class="fas fa-upload"></i> העלאת קובץ שיר
+            </label>
+            <input type="file" id="audioFile" accept="audio/*">
+        </div>
+        
+        <div class="loading">
+            <i class="fas fa-spinner"></i> טוען את הקובץ...
+        </div>
+        
+        <div class="waveform-container fade-in">
+            <div id="waveform"></div>
+            <div class="controls">
+                <button id="playButton" class="btn" disabled><i class="fas fa-play"></i> נגן</button>
+                <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label for="startTime">התחלה</label>
+                        <input type="number" id="startTime" step="0.1" min="0" value="0" disabled>
+                    </div>
+                    <div class="time-input">
+                        <label for="endTime">סיום</label>
+                        <input type="number" id="endTime" step="0.1" min="0" disabled>
+                    </div>
+                </div>
+                <button id="previewButton" class="btn" disabled><i class="fas fa-headphones"></i> תצוגה מקדימה</button>
+                <button id="trimButton" class="btn" disabled><i class="fas fa-cut"></i> חתוך והורד</button>
+            </div>
+        </div>
+        
+        <div id="status" class="fade-in"></div>
+        <div class="error fade-in" id="errorMessage"></div>
+        <div class="youtube-promo fade-in">
+            <a href="https://www.youtube.com/@sgolan20" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-youtube"></i> שחר גולן ביוטיוב
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let wavesurfer;
+        let audioContext;
+        let audioBuffer;
+        let originalFileName;
+        let isPlaying = false;
+        let previewSource;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#a0aec0',
+                progressColor: '#4a90e2',
+                cursorColor: '#f39c12',
+                barWidth: 2,
+                barRadius: 3,
+                cursorWidth: 1,
+                height: 100,
+                barGap: 3,
+                responsive: true,
+                plugins: [
+                    WaveSurfer.regions.create({
+                        regions: [
+                            {
+                                id: 'trimRegion',
+                                start: 0,
+                                end: 0,
+                                color: 'rgba(243, 156, 18, 0.3)'
+                            }
+                        ],
+                        dragSelection: true
+                    })
+                ]
+            });
+
+            document.getElementById('audioFile').addEventListener('change', handleFileUpload);
+            document.getElementById('playButton').addEventListener('click', togglePlay);
+            document.getElementById('trimButton').addEventListener('click', trimAudio);
+            document.getElementById('previewButton').addEventListener('click', previewAudio);
+            document.getElementById('volumeControl').addEventListener('input', updateVolume);
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            wavesurfer.on('region-update-end', updateInputs);
+            wavesurfer.on('ready', onWavesurferReady);
+            wavesurfer.on('error', onWavesurferError);
+        });
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) {
+                showError('לא נבחר קובץ. אנא בחר קובץ אודיו.');
+                return;
+            }
+            
+            originalFileName = file.name;
+            showLoading(true);
+            clearError();
+            resetUI();
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                audioContext.decodeAudioData(arrayBuffer)
+                    .then(function(decodedData) {
+                        audioBuffer = decodedData;
+                        wavesurfer.loadDecodedBuffer(audioBuffer);
+                    })
+                    .catch(function(error) {
+                        showError('שגיאה בפענוח קובץ האודיו: ' + error.message);
+                        showLoading(false);
+                    });
+            };
+            reader.onerror = function() {
+                showError('שגיאה בקריאת הקובץ. אנא נסה שוב.');
+                showLoading(false);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function onWavesurferReady() {
+            showLoading(false);
+            enableUI();
+            document.getElementById('endTime').value = wavesurfer.getDuration().toFixed(1);
+            wavesurfer.regions.list.trimRegion.update({
+                start: 0,
+                end: wavesurfer.getDuration()
+            });
+            updateStatus('השיר נטען בהצלחה. בחר את הקטע הרצוי וחתוך!');
+        }
+
+        function onWavesurferError(error) {
+            showError('שגיאה בטעינת הקובץ: ' + error);
+            showLoading(false);
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                wavesurfer.pause();
+                document.getElementById('playButton').innerHTML = '<i class="fas fa-play"></i> נגן';
+            } else {
+                wavesurfer.play();
+                document.getElementById('playButton').innerHTML = '<i class="fas fa-pause"></i> עצור';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function updateInputs() {
+            const region = wavesurfer.regions.list.trimRegion;
+            document.getElementById('startTime').value = region.start.toFixed(1);
+            document.getElementById('endTime').value = region.end.toFixed(1);
+        }
+
+        async function trimAudio() {
+    updateStatus('מתחיל בחיתוך השיר...');
+    const startTime = parseFloat(document.getElementById('startTime').value);
+    const endTime = parseFloat(document.getElementById('endTime').value);
+
+    if (isNaN(startTime) || isNaN(endTime) || startTime >= endTime || startTime < 0 || endTime > audioBuffer.duration) {
+        showError('זמני ההתחלה והסיום אינם תקינים');
+        return;
+    }
+
+    try {
+        updateStatus('מבצע חיתוך...');
+        const duration = endTime - startTime;
+        const sampleRate = audioBuffer.sampleRate;
+        const startOffset = Math.floor(startTime * sampleRate);
+        const endOffset = Math.floor(endTime * sampleRate);
+        const newLength = endOffset - startOffset;
+
+        const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, newLength, sampleRate);
+        const source = offlineContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(offlineContext.destination);
+        source.start(0, startTime, duration);
+
+        const renderedBuffer = await offlineContext.startRendering();
+        const blob = bufferToWave(renderedBuffer, newLength);
+
+        if (!blob) {
+            throw new Error('Failed to create audio blob');
+        }
+
+        updateStatus('החיתוך הושלם. מכין להורדה...');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `נאוה_${originalFileName || 'audio.wav'}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus('השיר החתוך הורד בהצלחה!');
+    } catch (error) {
+        console.error('שגיאה במהלך החיתוך:', error);
+        showError('אירעה שגיאה במהלך החיתוך: ' + error.message);
+    }
+}
+
+function previewAudio() {
+    const startTime = parseFloat(document.getElementById('startTime').value);
+    const endTime = parseFloat(document.getElementById('endTime').value);
+
+    if (isNaN(startTime) || isNaN(endTime) || startTime >= endTime || startTime < 0 || endTime > audioBuffer.duration) {
+        showError('זמני ההתחלה והסיום אינם תקינים');
+        return;
+    }
+
+    if (previewSource) {
+        previewSource.stop();
+    }
+
+    const duration = endTime - startTime;
+    previewSource = audioContext.createBufferSource();
+    previewSource.buffer = audioBuffer;
+    
+    const gainNode = audioContext.createGain();
+    previewSource.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    const volumeControl = document.getElementById('volumeControl');
+    gainNode.gain.setValueAtTime(volumeControl.value, audioContext.currentTime);
+
+    previewSource.start(0, startTime, duration);
+    updateStatus('מנגן תצוגה מקדימה...');
+
+    previewSource.onended = function() {
+        updateStatus('תצוגה מקדימה הסתיימה');
+    };
+}
+
+function updateVolume() {
+    const volumeControl = document.getElementById('volumeControl');
+    wavesurfer.setVolume(volumeControl.value);
+}
+
+function bufferToWave(abuffer, len) {
+    const numOfChan = abuffer.numberOfChannels;
+    const length = len * numOfChan * 2 + 44;
+    const buffer = new ArrayBuffer(length);
+    const view = new DataView(buffer);
+    const channels = [];
+    let sample;
+    let offset = 0;
+
+    // write WAVE header
+    setUint32(0x46464952);                         // "RIFF"
+    setUint32(length - 8);                         // file length - 8
+    setUint32(0x45564157);                         // "WAVE"
+
+    setUint32(0x20746d66);                         // "fmt " chunk
+    setUint32(16);                                 // length = 16
+    setUint16(1);                                  // PCM (uncompressed)
+    setUint16(numOfChan);
+    setUint32(abuffer.sampleRate);
+    setUint32(abuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+    setUint16(numOfChan * 2);                      // block-align
+    setUint16(16);                                 // 16-bit (hardcoded in this demo)
+
+    setUint32(0x61746164);                         // "data" - chunk
+    setUint32(length - offset - 4);                // chunk length
+
+    // write interleaved data
+    for(let i = 0; i < abuffer.numberOfChannels; i++)
+        channels.push(abuffer.getChannelData(i));
+
+    for(let i = 0; i < len; i++) {
+        for(let c = 0; c < numOfChan; c++) {
+            sample = Math.max(-1, Math.min(1, channels[c][i])); // clamp
+            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0; // scale to 16-bit signed int
+            view.setInt16(offset, sample, true);
+            offset += 2;
+        }
+    }
+
+    // create Blob
+    return new Blob([buffer], {type: "audio/wav"});
+
+    function setUint16(data) {
+        view.setUint16(offset, data, true);
+        offset += 2;
+    }
+
+    function setUint32(data) {
+        view.setUint32(offset, data, true);
+        offset += 4;
+    }
+}
+
+function updateStatus(message) {
+    document.getElementById('status').textContent = message;
+    console.log(message);
+}
+
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('errorMessage').style.display = 'block';
+}
+
+function clearError() {
+    document.getElementById('errorMessage').textContent = '';
+    document.getElementById('errorMessage').style.display = 'none';
+}
+
+function showLoading(show) {
+    document.querySelector('.loading').style.display = show ? 'block' : 'none';
+}
+
+function resetUI() {
+    document.getElementById('playButton').disabled = true;
+    document.getElementById('startTime').disabled = true;
+    document.getElementById('endTime').disabled = true;
+    document.getElementById('trimButton').disabled = true;
+    document.getElementById('previewButton').disabled = true;
+    document.getElementById('status').textContent = '';
+}
+
+function enableUI() {
+    document.getElementById('playButton').disabled = false;
+    document.getElementById('startTime').disabled = false;
+    document.getElementById('endTime').disabled = false;
+    document.getElementById('trimButton').disabled = false;
+    document.getElementById('previewButton').disabled = false;
+}
+</script>
+</body>
+</html>
